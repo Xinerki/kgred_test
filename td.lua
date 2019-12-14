@@ -1,9 +1,9 @@
 
 Citizen.CreateThread(function()
-	view1 = CreateCamWithParams("DEFAULT_SCRIPTED_CAMERA", 10.5, 13.6, 75.3, 0.0, 0.0, 180.0, 45.0, true, 0)
-	-- SetCamCoord(view1, 10.5, 13.6, 75.3)
-	-- SetCamRot(view1, 0.0, 0.0, 180.0, 0.0)
-	-- SetCamFov(view1, 45.0)
+	view1=CreateCam("DEFAULT_SCRIPTED_CAMERA", 1)
+	SetCamCoord(view1, 10.5, 13.6, 75.3)
+	SetCamRot(view1, 0.0, 0.0, 180.0, 0.0)
+	SetCamFov(view1, 45.0)
 end)
 
 function translateAngle(x1, y1, ang, offset)
@@ -14,11 +14,11 @@ end
 
 camEnabled = false
 
--- Citizen.CreateThread(function()
-	-- while true do Wait(0)
-		-- localPlayer = PlayerPedId()
+Citizen.CreateThread(function()
+	while true do Wait(0)
+		localPlayer = PlayerPedId()
 
-		-- if camEnabled then
+		if camEnabled then
 			-- if IsPedInAnyVehicle(localPlayer, false) == 1 then
 				-- x,y,z = table.unpack(GetEntityCoords(GetVehiclePedIsIn(localPlayer, false)))
 				-- rotx, roty, rotz = table.unpack(GetEntityRotation(GetVehiclePedIsIn(localPlayer, false)))
@@ -37,24 +37,24 @@ camEnabled = false
 				-- SetCamRot(view1, -50.0, 0.0, rz)
 				
 			-- else
-				-- x,y,z = table.unpack(GetEntityCoords(localPlayer))
-				-- rotz = GetEntityHeading(localPlayer)
+				x,y,z = table.unpack(GetEntityCoords(localPlayer))
+				rotz = GetEntityHeading(localPlayer)
 				
-				-- if IsEntityUpsidedown(GetVehiclePedIsIn(localPlayer, false)) == 1 then 
-					-- rotz = -rotz 
-				-- end
+				if IsEntityUpsidedown(GetVehiclePedIsIn(localPlayer, false)) == 1 then 
+					rotz = -rotz 
+				end
 				
-				-- local ang = 0
-				-- local cz = GetGameplayCamRelativeHeading()
-				-- local rz = (rotz+cz)+ang
-				-- local markPos = translateAngle(x, y, math.rad(-rz), -15)
-				-- local x, y = table.unpack(markPos)
-				-- SetCamCoord(view1, x, y, z+25)
-				-- SetCamRot(view1, -50.0, 0.0, rz)
+				local ang = 0
+				local cz = GetGameplayCamRelativeHeading()
+				local rz = (rotz+cz)+ang
+				local markPos = translateAngle(x, y, math.rad(-rz), -15)
+				local x, y = table.unpack(markPos)
+				SetCamCoord(view1, x, y, z+25)
+				SetCamRot(view1, -50.0, 0.0, rz)
 			-- end
-		-- end
-	-- end
--- end)
+		end
+	end
+end)
 
 RegisterCommand('td', function()
 	print("swapping to " .. tostring(not camEnabled) .. "\n")

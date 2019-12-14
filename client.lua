@@ -326,8 +326,12 @@ local example = {0x987C359D, 0x37A566F6, 0x8071A64D, 0x16C30C8A, 0x78CDED83, 0xF
 -- 901596767 mp_male fingerless gloves
 
 gamertags = {}
+blips = {}
+nametagEnabled = false
 
+if nametagEnabled == true then
 Citizen.CreateThread(function()
+
     Wait(500)
 
 	pp = PlayerPedId()
@@ -344,8 +348,22 @@ Citizen.CreateThread(function()
     end
 	
 	while true do Wait(150)
+	-- return false -- disabled
+	
+		for i,v in ipairs(blips) do
+			-- print(v)
+			if IsPedDeadOrDying(GetPlayerPed(i), false) then
+				RemoveBlip(v)
+				blips[i] = nil
+			end
+		end
+	
 		for i=0,512 do
-			if NetworkIsPlayerActive( i ) and GetPlayerPed( i ) ~= PlayerPedId() and not gamertags[i] then
+		-- for i,v in ipairs(GetActivePlayers()) do
+			if NetworkIsPlayerActive(i) and GetPlayerPed(i) ~= PlayerPedId() and IsPedDeadOrDying(GetPlayerPed(i), false) == false then
+			-- print(i)
+			
+			local player = GetPlayerPed(i)
 			
 			-- Citizen.Trace(GetPlayerName(i))
 			
@@ -359,12 +377,22 @@ Citizen.CreateThread(function()
 			
 			-- local id = CreateMpGamerTag(GetPlayerPed(i), GetPlayerName(i), true, false, clanTag, false)
 			
-			-- CreateFakeMpGamerTag(GetPlayerPed(i), GetPlayerName(i), false, false, clanTag, false)
+			if blips[i] == nil or not DoesBlipExist(blips[i]) then
+				local id = CreateFakeMpGamerTag(player, GetPlayerName(i), false, false, clanTag, false)
+				RemoveBlip(GetBlipFromEntity(player))
+				
+				local blip = N_0x23f74c2fda6e7c61(422991367, player)
+				SetBlipNameToPlayerName(blip, i)
+				
+				gamertags[i] = id
+				blips[i] = blip
+			end
 			
 			end
 		end
 	end
 end)
+end
 
 
 RegisterCommand('apply', function(source, args)
@@ -424,7 +452,7 @@ Citizen.CreateThread(function()
 	
 	N_0x4759cc730f947c81() -- ped pop enable
 	N_0x1ff00db43026b12f() -- veh?
-	SetEntityHasGravity(PlayerPedId(), true)
+	-- SetEntityHasGravity(PlayerPedId(), true)
 	NetworkSetFriendlyFireOption(true)
 	SetMinimapHideFow(true)
 	
@@ -433,6 +461,8 @@ Citizen.CreateThread(function()
 	-- DecorSetBool(PlayerPedId(), "wearing_bandana", true)
 	
 	-- for i=0,512 do SetPedConfigFlag(PlayerPedId(), i, false) end
+	
+	ShutdownLoadingScreen()
 
 
 	while true do Wait(0)
@@ -442,14 +472,20 @@ Citizen.CreateThread(function()
 	if IsDisabledControlJustPressed(0, "INPUT_ENTER") == 1 then
 		aiming, ent = GetEntityPlayerIsFreeAimingAt(PlayerId(), PlayerPedId())
 		if aiming and ent and IsEntityAPed(ent) then
-			local boneId = GetEntityBoneIndexByName(ent, "SKEL_Head")
-			local x, y, z = table.unpack(GetWorldPositionOfEntityBone(ent, boneId))
+			-- local boneId = GetEntityBoneIndexByName(ent, "SKEL_Head")
+			-- local x, y, z = table.unpack(GetWorldPositionOfEntityBone(ent, boneId))
 			-- local x, y, z = table.unpack(GetEntityCoords(ent))
-			ShootSingleBulletBetweenCoords(x, y, z-0.1, x, y, z, 1.0, 0, `WEAPON_SHOTGUN_PUMP`, 0, false, true, 1.0, 1)
+			-- ShootSingleBulletBetweenCoords(x, y, z-0.1, x, y, z, 1.0, 0, `WEAPON_SHOTGUN_PUMP`, 0, false, true, 1.0, 1)
 			-- AddOwnedExplosion(PlayerPedId(), x, y, z, 23, 0.5, false, true, false)
 			-- ForceLightningFlashAtCoords(x, y, z)
+			-- DeleteEntity(ent)
 		end
 	end
+	
+	RestorePlayerStamina(PlayerId(), 100.0)
+	-- N_0xc6258f41d86676e0(PlayerPedId(), 0, 1.0)
+	N_0xc6258f41d86676e0(PlayerPedId(), 1, 1.0)
+	N_0xc6258f41d86676e0(PlayerPedId(), 2, 1.0)
 
 	-- local _, x, y = GetScreenCoordFromWorldCoord(x, y, z)
 	-- if _ == 1 then DrawGameText(x, y, "boens", 255, 255, 255, 255, 50.0, 1.0) end
@@ -468,7 +504,7 @@ Citizen.CreateThread(function()
 	-- N_0x67943537d179597c(2977.4, 457.4, 49.4)
 	-- DrawRect(0.0, 1.0, 0.84, 0.06, 0, 0, 0, 150, true)
 	
-	-- SetSuperJumpThisFrame(PlayerId())
+	SetSuperJumpThisFrame(PlayerId())
 	
 		if menuEnabled == true then
 		
@@ -633,107 +669,190 @@ end)
 
 -- 0x267E3453 oc hat maybe
 
+function SetPedAsCharacter(ped, char)
+
+	if char == 'jonathan' then -- Jonathan Reach
+		
+		-- SetPedOutfitPreset(ped, 77, 0)
+
+		local model = 0xA11747C5
+		local category = N_0x5ff9a878c3d115b8(model, false, true)
+		N_0x59bd177a1a48600a(ped, category)
+		N_0xd3a7b003ed343fd9(ped, model, false, true, false)
+
+		local model = 0x5FA010BC
+		local category = N_0x5ff9a878c3d115b8(model, false, true)
+		N_0x59bd177a1a48600a(ped, category)
+		N_0xd3a7b003ed343fd9(ped, model, false, true, false)
+
+		local model = 712446626
+		local category = N_0x5ff9a878c3d115b8(model, false, true)
+		N_0x59bd177a1a48600a(ped, category)
+		N_0xd3a7b003ed343fd9(ped, model, false, true, false)
+
+		local model = 0x13A24745
+		local category = N_0x5ff9a878c3d115b8(model, false, true)
+		N_0x59bd177a1a48600a(ped, category)
+		N_0xd3a7b003ed343fd9(ped, model, false, true, false)
+
+		local model = 2026761603
+		local category = N_0x5ff9a878c3d115b8(model, false, true)
+		N_0x59bd177a1a48600a(ped, category)
+		N_0xd3a7b003ed343fd9(ped, model, false, true, false)
+
+		local model = 0x206061DB
+		local category = N_0x5ff9a878c3d115b8(model, false, true)
+		N_0x59bd177a1a48600a(ped, category)
+		N_0xd3a7b003ed343fd9(ped, model, false, true, false)
+
+		local model = 0x3033DA22
+		local category = N_0x5ff9a878c3d115b8(model, false, true)
+		N_0x59bd177a1a48600a(ped, category)
+		N_0xd3a7b003ed343fd9(ped, model, false, true, false)
+
+		local model = 0x29057A69
+		local category = N_0x5ff9a878c3d115b8(model, false, true)
+		N_0x59bd177a1a48600a(ped, category)
+		N_0xd3a7b003ed343fd9(ped, model, false, true, false)
+
+		local model = 0x10051C7
+		local category = N_0x5ff9a878c3d115b8(model, false, true)
+		N_0x59bd177a1a48600a(ped, category)
+		N_0xd3a7b003ed343fd9(ped, model, false, true, false)
+
+		local model = 0x56DC1321
+		local category = N_0x5ff9a878c3d115b8(model, false, true)
+		N_0x59bd177a1a48600a(ped, category)
+		N_0xd3a7b003ed343fd9(ped, model, false, true, false)
+
+		local model = 0x5DDECEF2
+		local category = N_0x5ff9a878c3d115b8(model, false, true)
+		N_0x59bd177a1a48600a(ped, category)
+		N_0xd3a7b003ed343fd9(ped, model, true, true, false)
+	end
+	
+	if char == 'bart' then -- Bart Coleman
+
+		local model = 0x3625908B
+		local category = N_0x5ff9a878c3d115b8(model, false, true)
+		N_0x59bd177a1a48600a(ped, category)
+		N_0xd3a7b003ed343fd9(ped, model, false, true, false)
+
+		local model = 0x3825D527
+		local category = N_0x5ff9a878c3d115b8(model, false, true)
+		N_0x59bd177a1a48600a(ped, category)
+		N_0xd3a7b003ed343fd9(ped, model, false, true, false)
+
+		local model = 0x15ACBB1D
+		local category = N_0x5ff9a878c3d115b8(model, false, true)
+		N_0x59bd177a1a48600a(ped, category)
+		N_0xd3a7b003ed343fd9(ped, model, false, true, false)
+
+		local model = 0x61227FF8
+		local category = N_0x5ff9a878c3d115b8(model, false, true)
+		N_0x59bd177a1a48600a(ped, category)
+		N_0xd3a7b003ed343fd9(ped, model, false, true, false)
+
+		local model = 0x1C03EAB2
+		local category = N_0x5ff9a878c3d115b8(model, false, true)
+		N_0x59bd177a1a48600a(ped, category)
+		N_0xd3a7b003ed343fd9(ped, model, false, true, false)
+
+		local model = 0x13A24745
+		local category = N_0x5ff9a878c3d115b8(model, false, true)
+		N_0x59bd177a1a48600a(ped, category)
+		N_0xd3a7b003ed343fd9(ped, model, false, true, false)
+
+		local model = 0x1F93EE0E
+		local category = N_0x5ff9a878c3d115b8(model, false, true)
+		N_0x59bd177a1a48600a(ped, category)
+		N_0xd3a7b003ed343fd9(ped, model, true, true, false)
+	end
+end
 
 RegisterCommand('char', function(source, args)
 	if args then
-		if args[1] == 'jonathan' then -- Jonathan Reach
-			
-			-- SetPedOutfitPreset(PlayerPedId(), 77, 0)
-
-			local model = 0xA11747C5
-			local category = N_0x5ff9a878c3d115b8(model, false, true)
-			N_0x59bd177a1a48600a(PlayerPedId(), category)
-			N_0xd3a7b003ed343fd9(PlayerPedId(), model, false, true, false)
-
-			local model = 0x5FA010BC
-			local category = N_0x5ff9a878c3d115b8(model, false, true)
-			N_0x59bd177a1a48600a(PlayerPedId(), category)
-			N_0xd3a7b003ed343fd9(PlayerPedId(), model, false, true, false)
-
-			local model = 712446626
-			local category = N_0x5ff9a878c3d115b8(model, false, true)
-			N_0x59bd177a1a48600a(PlayerPedId(), category)
-			N_0xd3a7b003ed343fd9(PlayerPedId(), model, false, true, false)
-
-			local model = 0x13A24745
-			local category = N_0x5ff9a878c3d115b8(model, false, true)
-			N_0x59bd177a1a48600a(PlayerPedId(), category)
-			N_0xd3a7b003ed343fd9(PlayerPedId(), model, false, true, false)
-
-			local model = 2026761603
-			local category = N_0x5ff9a878c3d115b8(model, false, true)
-			N_0x59bd177a1a48600a(PlayerPedId(), category)
-			N_0xd3a7b003ed343fd9(PlayerPedId(), model, false, true, false)
-
-			local model = 0x206061DB
-			local category = N_0x5ff9a878c3d115b8(model, false, true)
-			N_0x59bd177a1a48600a(PlayerPedId(), category)
-			N_0xd3a7b003ed343fd9(PlayerPedId(), model, false, true, false)
-
-			local model = 0x3033DA22
-			local category = N_0x5ff9a878c3d115b8(model, false, true)
-			N_0x59bd177a1a48600a(PlayerPedId(), category)
-			N_0xd3a7b003ed343fd9(PlayerPedId(), model, false, true, false)
-
-			local model = 0x29057A69
-			local category = N_0x5ff9a878c3d115b8(model, false, true)
-			N_0x59bd177a1a48600a(PlayerPedId(), category)
-			N_0xd3a7b003ed343fd9(PlayerPedId(), model, false, true, false)
-
-			local model = 0x10051C7
-			local category = N_0x5ff9a878c3d115b8(model, false, true)
-			N_0x59bd177a1a48600a(PlayerPedId(), category)
-			N_0xd3a7b003ed343fd9(PlayerPedId(), model, false, true, false)
-
-			local model = 0x56DC1321
-			local category = N_0x5ff9a878c3d115b8(model, false, true)
-			N_0x59bd177a1a48600a(PlayerPedId(), category)
-			N_0xd3a7b003ed343fd9(PlayerPedId(), model, false, true, false)
-
-			local model = 0x5DDECEF2
-			local category = N_0x5ff9a878c3d115b8(model, false, true)
-			N_0x59bd177a1a48600a(PlayerPedId(), category)
-			N_0xd3a7b003ed343fd9(PlayerPedId(), model, true, true, false)
-		end
-		
-		if args[1] == 'bart' then -- Bart Coleman
-
-			local model = 0x3625908B
-			local category = N_0x5ff9a878c3d115b8(model, false, true)
-			N_0x59bd177a1a48600a(PlayerPedId(), category)
-			N_0xd3a7b003ed343fd9(PlayerPedId(), model, false, true, false)
-
-			local model = 0x3825D527
-			local category = N_0x5ff9a878c3d115b8(model, false, true)
-			N_0x59bd177a1a48600a(PlayerPedId(), category)
-			N_0xd3a7b003ed343fd9(PlayerPedId(), model, false, true, false)
-
-			local model = 0x15ACBB1D
-			local category = N_0x5ff9a878c3d115b8(model, false, true)
-			N_0x59bd177a1a48600a(PlayerPedId(), category)
-			N_0xd3a7b003ed343fd9(PlayerPedId(), model, false, true, false)
-
-			local model = 0x61227FF8
-			local category = N_0x5ff9a878c3d115b8(model, false, true)
-			N_0x59bd177a1a48600a(PlayerPedId(), category)
-			N_0xd3a7b003ed343fd9(PlayerPedId(), model, false, true, false)
-
-			local model = 0x1C03EAB2
-			local category = N_0x5ff9a878c3d115b8(model, false, true)
-			N_0x59bd177a1a48600a(PlayerPedId(), category)
-			N_0xd3a7b003ed343fd9(PlayerPedId(), model, false, true, false)
-
-			local model = 0x13A24745
-			local category = N_0x5ff9a878c3d115b8(model, false, true)
-			N_0x59bd177a1a48600a(PlayerPedId(), category)
-			N_0xd3a7b003ed343fd9(PlayerPedId(), model, false, true, false)
-
-			local model = 0x1F93EE0E
-			local category = N_0x5ff9a878c3d115b8(model, false, true)
-			N_0x59bd177a1a48600a(PlayerPedId(), category)
-			N_0xd3a7b003ed343fd9(PlayerPedId(), model, true, true, false)
-		end
+		SetPedAsCharacter(PlayerPedId(), args[1])
 	end
+end)
+
+RegisterCommand('group', function(source, args)
+	SetPedAsGroupMember(bart, GetPedGroupIndex(PlayerPedId()))
+end)
+
+RegisterCommand('disband', function(source, args)
+	SetEntityAsNoLongerNeeded(bart)
+end)
+
+RegisterCommand('duck', function(source, args)
+	CreateThread(function()
+		local model = `A_C_HORSE_ARABIAN_WHITE`
+		PerformRequest(model)
+		local x, y, z = table.unpack(GetEntityCoords(PlayerPedId(), 0))
+		for i=1,10 do
+			-- CreatePed(pedType, modelHash, x, y, z, heading, isNetwork, thisScriptCheck)
+			-- CreatePed(p0, p1, p2, p3, p4, p5, p6, p7, p8)
+			-- local arthur = Citizen.InvokeNative(0xD49F9B0955C367DE, 5, model, -799.05, -1333.75, 43.5, 0, true, true, true, Citizen.ResultAsInteger())
+			-- local arthur = CreatePed(model, -799.05, -1333.75, 43.5, 0.0, true, true, true, true)
+			duck = CreatePed(model, (i*2)+x+2, y+2, z, 0.0, true, true, true, true)
+			Citizen.InvokeNative(0x283978A15512B2FE, duck, true)
+			-- Citizen.Trace(arthur.."\n")
+						
+			-- SetDecisionMaker(arthur, `DEFAULT_RESPONSE_HATE`)
+			-- SetPedRelationshipGroupHash(ped, GetHashKey("ENEMY"))
+			
+			SetPedScale(duck, 3.0)
+			
+			-- TaskCombatPed(duck, PlayerPedId(), 0, 16)
+			
+			-- SetPedAsGroupMember(duck, GetPedGroupIndex(PlayerPedId()))
+			
+			-- SetEntityAsMissionEntity(duck, 1, 1)
+			-- TaskSetBlockingOfNonTemporaryEvents(duck, true)
+			
+			SetModelAsNoLongerNeeded(model)
+			SetEntityAsNoLongerNeeded(duck)
+		end
+	end)
+end)
+
+RegisterCommand('bart', function(source, args)
+	CreateThread(function()
+		local model = `mp_male`
+		PerformRequest(model)
+		local x, y, z = table.unpack(GetEntityCoords(PlayerPedId(), 0))
+		-- CreatePed(pedType, modelHash, x, y, z, heading, isNetwork, thisScriptCheck)
+		-- CreatePed(p0, p1, p2, p3, p4, p5, p6, p7, p8)
+		-- local arthur = Citizen.InvokeNative(0xD49F9B0955C367DE, 5, model, -799.05, -1333.75, 43.5, 0, true, true, true, Citizen.ResultAsInteger())
+		-- local arthur = CreatePed(model, -799.05, -1333.75, 43.5, 0.0, true, true, true, true)
+		bart = CreatePed(model, x+2, y+2, z, 0.0, true, true, true, true)
+		Citizen.InvokeNative(0x283978A15512B2FE, bart, true)
+		
+		SetPedOutfitPreset(bart, 81)
+		Citizen.Wait(500)
+		SetPedAsCharacter(bart, "bart")
+		Citizen.Wait(500)
+		
+		-- PerformRequest("w_revolver_cattleman01")
+		-- GiveWeapon(bart, "WEAPON_REVOLVER_CATTLEMAN", 500, false, 1, false, 0.0)
+		-- SetModelAsNoLongerNeeded("w_revolver_cattleman01")
+		
+		PerformRequest("w_shotgun_doublebarrel01")
+		GiveWeapon(bart, "WEAPON_SHOTGUN_DOUBLEBARREL", 500, false, 1, false, 0.0)
+		SetModelAsNoLongerNeeded("w_shotgun_doublebarrel01")
+		
+		Citizen.Wait(500)
+		-- Citizen.Trace(arthur.."\n")
+					
+		-- SetDecisionMaker(arthur, `DEFAULT_RESPONSE_HATE`)
+		-- SetPedRelationshipGroupHash(ped, GetHashKey("ENEMY"))
+		
+		-- TaskCombatPed(arthur, PlayerPedId(), 0, 16)
+		
+		SetPedAsGroupMember(bart, GetPedGroupIndex(PlayerPedId()))
+		
+		-- SetModelAsNoLongerNeeded(model)
+	end)
 end)
 
 marston_Vars = { -2091943191, 1331190543, 1336948195, 216184750 }
@@ -915,16 +1034,18 @@ RegisterCommand('marston', function(source, args)
 	CreateThread(function()
 		local model = `cs_johnmarston`
 		PerformRequest(model)
-		local marston = CreatePed(model, -799.05, -1333.75, 43.5, 0.0, true, true, true, true)
+		local x, y, z = table.unpack(GetEntityCoords(PlayerPedId(), 0))
+		local marston = CreatePed(model, x+2, y+2, z, 0.0, true, true, true, true)
 		Citizen.InvokeNative(0x283978A15512B2FE, marston, true)
 		SetPedOutfitPreset(marston, 16)
-		GiveWeapon(marston, "w_winchester_repeater01", "weapon_repeater_winchester")
+		-- GiveWeapon(marston, "w_winchester_repeater01", "weapon_repeater_winchester")
 		-- Citizen.Trace(marston.."\n")
-		SetPedAsGroupMember(marston, GetPedGroupIndex(PlayerPedId()))
+		-- SetPedAsGroupMember(marston, GetPedGroupIndex(PlayerPedId()))
 		
 		Wait(1500)
 		ClonePedToTarget(marston, PlayerPedId())
-		SetModelAsNoLongerNeeded(marston)
+		SetModelAsNoLongerNeeded(model)
+		SetEntityAsNoLongerNeeded(marston)
 	end)
 end)
 
